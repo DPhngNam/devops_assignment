@@ -59,7 +59,7 @@ resource "aws_route_table_association" "public_association" {
 }
 
 resource "aws_eip" "nat" {
-  associate_with_private_ip = true
+  domain = "vpc"
 }
 
 resource "aws_nat_gateway" "public" {
