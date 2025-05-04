@@ -1,15 +1,18 @@
-# devops_assignment
+# AWS Infrastructure with Terraform
 
-## Giới thiệu
+## Introduction / Giới thiệu
+
+This repository uses **Terraform** to deploy AWS infrastructure including: VPC, subnets, security groups, and EC2 instances (public/private).
 
 Repository này sử dụng **Terraform** để triển khai hạ tầng AWS bao gồm: VPC, các subnet, security group, và EC2 instance (public/private).
 
-## Yêu cầu
+## Requirements / Yêu cầu
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0.0
+- AWS account with permissions to create VPC, EC2, Security Groups, etc.
 - Tài khoản AWS với quyền tạo VPC, EC2, Security Group, v.v.
 
-## Hướng dẫn sử dụng
+## Usage / Hướng dẫn sử dụng
 
 ### 1. Clone repository
 
@@ -18,55 +21,65 @@ git clone <repo-url>
 cd devops_assignment
 ```
 
-### 2. Cấu hình thông tin AWS và biến đầu vào
+### 2. Configure AWS credentials and input variables
 
-Tạo file `terraform.tfvars` (hoặc chỉnh sửa file có sẵn) với nội dung ví dụ:
+Create a `terraform.tfvars` file (or modify the existing one) with the following example content:
 
 ```hcl
-aws_region     = "us-west-2"
-aws_access_key = "YOUR_ACCESS_KEY"
-aws_secret_key = "YOUR_SECRET_KEY"
-my_ip_cidr     = "1.2.3.4/32"
-ami_id         = "ami-0abcdef1234567890"
-instance_type  = "t2.micro"
+aws_region     = "us-east-1"
+my_ip_cidr     = "YOUR_IP_ADDRESS/32"  # e.g., "1.2.3.4/32"
 key_pair_name  = "your-keypair"
 ```
 
-Các biến khác đã có giá trị mặc định hoặc được định nghĩa trong module.
+Other variables have default values defined in the modules.
 
-### 3. Khởi tạo Terraform
+### 3. Initialize Terraform
 
 ```bash
 terraform init
 ```
 
-### 4. Kiểm tra cấu hình
+### 4. Review the configuration
 
 ```bash
 terraform plan
 ```
 
-### 5. Triển khai hạ tầng
+### 5. Deploy the infrastructure
 
 ```bash
 terraform apply
 ```
 
-Nhập `yes` để xác nhận khi được hỏi.
+Enter `yes` when prompted for confirmation.
 
-### 6. Kết quả đầu ra
+### 6. Output
 
-Sau khi chạy xong, Terraform sẽ hiển thị các output như:
-- ID của VPC, subnet, security group
-- ID của các EC2 instance public/private
+After completion, Terraform will display outputs including:
+- VPC, subnet, and security group IDs
+- Public and private EC2 instance IDs
 
-## Cấu trúc module
+## Module Structure / Cấu trúc module
 
-- `modules/vpc`: Tạo VPC, subnet, NAT gateway, route table, default security group.
-- `modules/security`: Tạo security group cho EC2 public/private.
-- `modules/ec2`: Tạo EC2 instance public và private.
+- `modules/vpc`: Creates VPC, subnets, NAT gateway, route tables, and default security group.
+- `modules/security`: Creates security groups for public and private EC2 instances.
+- `modules/ec2`: Creates public and private EC2 instances.
 
-## Lưu ý
+## Configuration Details / Chi tiết cấu hình
 
+### Default Values / Giá trị mặc định
+
+- Region: `us-east-1`
+- Availability Zones: `us-east-1a`, `us-east-1b`
+- VPC CIDR: `10.0.0.0/16`
+- Public Subnets: `10.0.1.0/24`, `10.0.2.0/24`
+- Private Subnets: `10.0.4.0/24`, `10.0.5.0/24`
+- Instance Type: `t2.micro`
+- AMI ID: `ami-0f88e80871fd81e91` (Amazon Linux 2)
+
+## Notes / Lưu ý
+
+- Ensure you have created an AWS key pair and specified its name in the `key_pair_name` variable.
+- Do not commit sensitive information (access keys, secret keys) to the repository.
 - Đảm bảo bạn đã tạo sẵn key pair trên AWS và điền đúng tên vào biến `key_pair_name`.
 - Không commit thông tin nhạy cảm (access key, secret key) lên repository.
