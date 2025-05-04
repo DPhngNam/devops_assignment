@@ -1,7 +1,14 @@
-variable "ami_id" {}
+variable "ami_id" {
+  type    = string
+  default = "ami-0f88e80871fd81e91"  # Amazon Linux 2 AMI in us-east-1
+}
 variable "key_pair_name" {}
 variable "my_ip_cidr" {}
-variable "aws_region" {}
+variable "aws_region" {
+  description = "AWS region to deploy resources"
+  type        = string
+  default     = "us-east-1"
+}
 variable "vpc_cidr_block" {
   type    = string
   default = "10.0.0.0/16"
@@ -9,7 +16,7 @@ variable "vpc_cidr_block" {
 
 variable "availability_zones" {
   type    = list(string)
-  default = ["us-west-1a", "us-west-1b", "us-west-1c"]
+  default = ["us-east-1a", "us-east-1b"]
 }
 
 variable "public_subnet_cidr_blocks" {
