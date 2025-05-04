@@ -39,3 +39,4 @@ terraform.rc
 # Terraform tfvars files with secrets
 terraform.tfvars
 *.auto.tfvars
+test-key.pem
