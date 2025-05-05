@@ -77,6 +77,51 @@ After completion, Terraform will display outputs including:
 - Instance Type: `t2.micro`
 - AMI ID: `ami-0f88e80871fd81e91` (Amazon Linux 2)
 
+## Testing / Kiểm thử
+
+This project uses Terraform's native testing framework (`.tftest.hcl` files) to validate the infrastructure configuration without creating actual resources.
+
+### Test Structure
+
+- **Module Tests**: Each module has its own test directory:
+  - `modules/vpc/tests/vpc_test.tftest.hcl`: Tests VPC, subnets, gateways, route tables, and security groups
+  - `modules/security/tests/security_test.tftest.hcl`: Tests security group configurations
+  - `modules/ec2/tests/ec2_test.tftest.hcl`: Tests EC2 instance configurations
+
+- **Integration Test**: Tests how all modules work together
+  - `tests/integration_test.tftest.hcl`: Verifies input variables, module structure, and VPC configuration
+
+### Running Tests
+
+To run tests for a specific module:
+
+```bash
+cd modules/vpc
+terraform init
+terraform test
+```
+
+To run the integration test from the root directory:
+
+```bash
+terraform init
+terraform test
+```
+
+### Test Implementation Notes
+
+- Tests focus on the plan phase to avoid creating actual AWS resources
+- Set variables are accessed as a whole rather than by index since Terraform doesn't support index access for sets
+- Valid placeholder values are used for resources like AMI IDs and VPC IDs
+
+### Common Test Issues and Solutions
+
+1. **Set Access by Index**: Terraform doesn't allow accessing elements of a set by index. Instead, verify other properties or the existence of resources.
+
+2. **Multi-line Conditions**: The Terraform test framework doesn't support line continuation with `&&` operators spread across multiple lines. Use separate assert blocks instead.
+
+3. **Unknown Values During Plan**: Some values are only known after apply. Avoid comparing these values during plan phase tests.
+
 ## Notes / Lưu ý
 
 - Ensure you have created an AWS key pair and specified its name in the `key_pair_name` variable.
