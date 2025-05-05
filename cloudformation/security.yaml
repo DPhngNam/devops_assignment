@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Security Groups for EC2 Instances'
+
+Parameters:
+  VpcId:
+    Description: VPC ID
+    Type: String
+
+  AllowedSSHIP:
+    Description: IP address allowed to SSH into the public EC2 instance (CIDR format)
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+Resources:
+  # Public EC2 Security Group
+  PublicEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for public EC2 instance
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref AllowedSSHIP
+          Description: Allow SSH from specific IP
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicEC2SG
+
+  # Private EC2 Security Group
+  PrivateEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for private EC2 instance
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !Ref PublicEC2SecurityGroup
+          Description: Allow SSH from Public EC2 instance
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PrivateEC2SG
+
+Outputs:
+  PublicEC2SecurityGroupId:
+    Description: Security Group ID for Public EC2 Instance
+    Value: !Ref PublicEC2SecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicEC2SecurityGroupId
+
+  PrivateEC2SecurityGroupId:
+    Description: Security Group ID for Private EC2 Instance
+    Value: !Ref PrivateEC2SecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateEC2SecurityGroupId

@@ -40,3 +40,5 @@ terraform.rc
 terraform.tfvars
 *.auto.tfvars
 test-key.pem
+
+cloudformation/taskcat-env/

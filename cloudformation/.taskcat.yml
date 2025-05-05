@@ -1,0 +1,45 @@
+project:
+  name: devops-assignment
+  regions:
+    - us-east-1
+    - us-west-2
+  parameters:
+    KeyName: test-key
+    AllowedSSHIP: 0.0.0.0/0
+    InstanceType: t2.micro
+
+tests:
+  vpc-test:
+    template: ./vpc.yaml
+    parameters:
+      VpcCIDR: 10.0.0.0/16
+      PublicSubnetCIDR: 10.0.1.0/24
+      PrivateSubnetCIDR: 10.0.2.0/24
+      AvailabilityZone: us-east-1a
+
+  security-test:
+    template: ./security.yaml
+    parameters:
+      VpcId: "vpc-12345678"  # Placeholder value for testing
+      AllowedSSHIP: 0.0.0.0/0
+
+  ec2-test:
+    template: ./ec2.yaml
+    parameters:
+      PublicSubnetId: "subnet-12345678"  # Placeholder value for testing
+      PrivateSubnetId: "subnet-87654321"  # Placeholder value for testing
+      PublicEC2SecurityGroupId: "sg-12345678"  # Placeholder value for testing
+      PrivateEC2SecurityGroupId: "sg-87654321"  # Placeholder value for testing
+      KeyName: test-key
+      InstanceType: t2.micro
+
+  full-stack-test:
+    template: ./main.yaml
+    parameters:
+      VpcCIDR: 10.0.0.0/16
+      PublicSubnetCIDR: 10.0.1.0/24
+      PrivateSubnetCIDR: 10.0.2.0/24
+      AvailabilityZone: us-east-1a
+      AllowedSSHIP: 0.0.0.0/0
+      KeyName: test-key
+      InstanceType: t2.micro

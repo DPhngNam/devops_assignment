@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 Instances in Public and Private Subnets'
+
+Parameters:
+  PublicSubnetId:
+    Description: Public Subnet ID
+    Type: String
+
+  PrivateSubnetId:
+    Description: Private Subnet ID
+    Type: String
+
+  PublicEC2SecurityGroupId:
+    Description: Security Group ID for Public EC2 Instance
+    Type: String
+
+  PrivateEC2SecurityGroupId:
+    Description: Security Group ID for Private EC2 Instance
+    Type: String
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+    ConstraintDescription: Must be a valid EC2 instance type
+
+  LatestAmiId:
+    Description: AMI ID for Amazon Linux 2
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+Resources:
+  # Public EC2 Instance
+  PublicEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !Ref PublicEC2SecurityGroupId
+      SubnetId: !Ref PublicSubnetId
+      KeyName: !Ref KeyName
+      ImageId: !Ref LatestAmiId
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicEC2
+
+  # Private EC2 Instance
+  PrivateEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !Ref PrivateEC2SecurityGroupId
+      SubnetId: !Ref PrivateSubnetId
+      KeyName: !Ref KeyName
+      ImageId: !Ref LatestAmiId
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PrivateEC2
+
+Outputs:
+  PublicEC2InstanceId:
+    Description: ID of the Public EC2 Instance
+    Value: !Ref PublicEC2Instance
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicEC2InstanceId
+
+  PrivateEC2InstanceId:
+    Description: ID of the Private EC2 Instance
+    Value: !Ref PrivateEC2Instance
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateEC2InstanceId
+
+  PublicEC2InstancePublicIP:
+    Description: Public IP of the Public EC2 Instance
+    Value: !GetAtt PublicEC2Instance.PublicIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicEC2InstancePublicIP
+
+  PublicEC2InstancePrivateIP:
+    Description: Private IP of the Public EC2 Instance
+    Value: !GetAtt PublicEC2Instance.PrivateIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicEC2InstancePrivateIP
+
+  PrivateEC2InstancePrivateIP:
+    Description: Private IP of the Private EC2 Instance
+    Value: !GetAtt PrivateEC2Instance.PrivateIp
+    Export:
+      Name: !Sub ${AWS::StackName}-PrivateEC2InstancePrivateIP

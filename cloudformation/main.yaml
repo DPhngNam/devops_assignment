@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Main template that orchestrates the deployment of VPC, Security Groups, and EC2 instances'
+
+Parameters:
+  VpcCIDR:
+    Description: CIDR block for the VPC
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnetCIDR:
+    Description: CIDR block for the public subnet
+    Type: String
+    Default: 10.0.1.0/24
+
+  PrivateSubnetCIDR:
+    Description: CIDR block for the private subnet
+    Type: String
+    Default: 10.0.2.0/24
+
+  AvailabilityZone:
+    Description: Availability Zone for the subnets
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: us-east-1a
+
+  AllowedSSHIP:
+    Description: IP address allowed to SSH into the public EC2 instance (CIDR format)
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair
+
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+    ConstraintDescription: Must be a valid EC2 instance type
+
+Resources:
+  # VPC Stack
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: vpc.yaml
+      Parameters:
+        VpcCIDR: !Ref VpcCIDR
+        PublicSubnetCIDR: !Ref PublicSubnetCIDR
+        PrivateSubnetCIDR: !Ref PrivateSubnetCIDR
+        AvailabilityZone: !Ref AvailabilityZone
+
+  # Security Stack
+  SecurityStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: security.yaml
+      Parameters:
+        VpcId: !GetAtt VPCStack.Outputs.VpcId
+        AllowedSSHIP: !Ref AllowedSSHIP
+
+  # EC2 Stack
+  EC2Stack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: SecurityStack
+    Properties:
+      TemplateURL: ec2.yaml
+      Parameters:
+        PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnetId
+        PrivateSubnetId: !GetAtt VPCStack.Outputs.PrivateSubnetId
+        PublicEC2SecurityGroupId: !GetAtt SecurityStack.Outputs.PublicEC2SecurityGroupId
+        PrivateEC2SecurityGroupId: !GetAtt SecurityStack.Outputs.PrivateEC2SecurityGroupId
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !GetAtt VPCStack.Outputs.VpcId
+
+  PublicSubnetId:
+    Description: Public Subnet ID
+    Value: !GetAtt VPCStack.Outputs.PublicSubnetId
+
+  PrivateSubnetId:
+    Description: Private Subnet ID
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnetId
+
+  PublicEC2SecurityGroupId:
+    Description: Security Group ID for Public EC2 Instance
+    Value: !GetAtt SecurityStack.Outputs.PublicEC2SecurityGroupId
+
+  PrivateEC2SecurityGroupId:
+    Description: Security Group ID for Private EC2 Instance
+    Value: !GetAtt SecurityStack.Outputs.PrivateEC2SecurityGroupId
+
+  PublicEC2InstanceId:
+    Description: ID of the Public EC2 Instance
+    Value: !GetAtt EC2Stack.Outputs.PublicEC2InstanceId
+
+  PrivateEC2InstanceId:
+    Description: ID of the Private EC2 Instance
+    Value: !GetAtt EC2Stack.Outputs.PrivateEC2InstanceId
+
+  PublicEC2InstancePublicIP:
+    Description: Public IP of the Public EC2 Instance
+    Value: !GetAtt EC2Stack.Outputs.PublicEC2InstancePublicIP
+
+  PrivateEC2InstancePrivateIP:
+    Description: Private IP of the Private EC2 Instance
+    Value: !GetAtt EC2Stack.Outputs.PrivateEC2InstancePrivateIP
